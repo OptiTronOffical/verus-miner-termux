@@ -35,4 +35,6 @@ bash
 Copy code
 ./update.sh
 Configuration
-Edit the miner/config.json file to change your Verus wallet address and worker name.
+Edit the miner 
+/config.json
+file to change your Verus wallet address and worker name.
