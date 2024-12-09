@@ -16,3 +16,23 @@ A fully automated Verus miner for Termux on mobile devices.
    ```bash
    git clone https://github.com/MrNova420/verus-miner-termux.git
    cd verus-miner-termux
+
+
+Run the setup script:
+
+bash
+Copy code
+chmod +x setup.sh
+./setup.sh
+Start mining:
+
+bash
+Copy code
+./start.sh
+To update the miner:
+
+bash
+Copy code
+./update.sh
+Configuration
+Edit the miner/config.json file to change your Verus wallet address and worker name.
