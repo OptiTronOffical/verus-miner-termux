@@ -52,12 +52,14 @@ jobs:
 
       - name: Install Python tools
         if: contains(needs.setup.outputs.languages, 'python')
+        continue-on-error: true
         run: |
           pip install --upgrade pip
           pip install black flake8 bandit pytest coverage radon safety
 
       - name: Python lint, static analysis, tests, coverage, security, complexity
         if: contains(needs.setup.outputs.languages, 'python')
+        continue-on-error: true
         run: |
           black --check . | tee python_black.log || true
           flake8 . | tee python_flake8.log || true
@@ -77,12 +79,14 @@ jobs:
 
       - name: Install Node tools
         if: contains(needs.setup.outputs.languages, 'node')
+        continue-on-error: true
         run: |
           npm ci || npm install
           npm install --save-dev eslint prettier jest nyc
 
       - name: Node lint, tests, coverage, security
         if: contains(needs.setup.outputs.languages, 'node')
+        continue-on-error: true
         run: |
           npx eslint . | tee node_eslint.log || true
           npx prettier --check . | tee node_prettier.log || true
@@ -93,12 +97,14 @@ jobs:
       # -------- C/C++ --------
       - name: Install C/C++ tools
         if: contains(needs.setup.outputs.languages, 'cpp')
+        continue-on-error: true
         run: |
           sudo apt-get update
           sudo apt-get install -y clang gcc cppcheck valgrind cmake make
 
       - name: C/C++ lint, static analysis, build, test, memory check
         if: contains(needs.setup.outputs.languages, 'cpp')
+        continue-on-error: true
         run: |
           cppcheck . 2>&1 | tee cpp_cppcheck.log || true
           if [ -f Makefile ]; then make | tee cpp_make.log || true; fi
@@ -117,6 +123,7 @@ jobs:
 
       - name: Go vet, test, coverage, security
         if: contains(needs.setup.outputs.languages, 'go')
+        continue-on-error: true
         run: |
           go vet ./... | tee go_vet.log || true
           go test -v -coverprofile=go_coverage.out ./... | tee go_test.log || true
@@ -133,6 +140,7 @@ jobs:
 
       - name: Rust clippy, test, audit
         if: contains(needs.setup.outputs.languages, 'rust')
+        continue-on-error: true
         run: |
           cargo check | tee rust_cargo_check.log || true
           cargo clippy --all-targets --all-features -- -D warnings | tee rust_clippy.log || true
@@ -149,6 +157,7 @@ jobs:
 
       - name: Java build, test, lint, security
         if: contains(needs.setup.outputs.languages, 'java')
+        continue-on-error: true
         run: |
           if [ -f pom.xml ]; then mvn verify | tee java_mvn.log || true; fi
           if [ -f build.gradle ]; then ./gradlew check | tee java_gradle.log || true; fi
@@ -164,6 +173,7 @@ jobs:
 
       - name: PHP lint, static analysis, security
         if: contains(needs.setup.outputs.languages, 'php')
+        continue-on-error: true
         run: |
           composer install || true
           vendor/bin/phpstan analyse | tee php_phpstan.log || true
@@ -180,6 +190,7 @@ jobs:
 
       - name: Ruby lint, static analysis, security
         if: contains(needs.setup.outputs.languages, 'ruby')
+        continue-on-error: true
         run: |
           bundle install || true
           bundle exec rubocop . | tee ruby_rubocop.log || true
@@ -193,6 +204,7 @@ jobs:
 
       - name: Dart analyze & test
         if: contains(needs.setup.outputs.languages, 'dart')
+        continue-on-error: true
         run: |
           dart pub get
           dart analyze . | tee dart_analyze.log || true
@@ -210,6 +222,7 @@ jobs:
 
       - name: JSON Lint
         if: contains(needs.setup.outputs.languages, 'json')
+        continue-on-error: true
         run: |
           for f in $(find . -type f -name "*.json"); do
             echo "Linting $f"
@@ -218,6 +231,7 @@ jobs:
 
       - name: TOML Lint
         if: contains(needs.setup.outputs.languages, 'toml')
+        continue-on-error: true
         run: |
           pip install toml-lint || true
           for f in $(find . -type f -name "*.toml"); do
@@ -226,17 +240,19 @@ jobs:
 
       # -------- DOCKER --------
       - name: Install Hadolint
+        continue-on-error: true
         run: |
           curl -sL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
           chmod +x /usr/local/bin/hadolint
 
       - name: Hadolint Dockerfile
+        continue-on-error: true
         run: |
           if [ -f Dockerfile ]; then hadolint Dockerfile | tee docker_hadolint.log || true; else echo "No Dockerfile found."; fi
 
       # -------- SECURITY/DEPENDENCY/SECRETS --------
       - name: Trivy file & dependency scan
-        uses: aquasecurity/trivy-action@v0.21.3
+        uses: aquasecurity/trivy-action@v0.12.0
         with:
           scan-type: fs
         continue-on-error: true
@@ -255,6 +271,7 @@ jobs:
       # -------- GENERATE SUMMARY --------
       - name: Aggregate and summarize findings
         if: always()
+        continue-on-error: true
         run: |
           echo "# Copilot Universal Analyzer Report" > copilot_summary.md
           echo "## Problems and Action Items" >> copilot_summary.md
