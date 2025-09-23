@@ -1,5 +1,10 @@
 name: Ultimate Universal Analyzer
 
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
 on:
   push:
     branches: [main]
