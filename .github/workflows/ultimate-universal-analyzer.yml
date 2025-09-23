@@ -16,6 +16,7 @@ jobs:
 
       - name: Detect languages in repo
         id: detect
+        shell: bash
         run: |
           langs=""
           if ls *.py 1>/dev/null 2>&1 || [ -f requirements.txt ] || [ -f pyproject.toml ]; then langs="$langs python"; fi
@@ -36,7 +37,7 @@ jobs:
   analyze:
     needs: setup
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Checkout code
@@ -200,7 +201,7 @@ jobs:
       # -------- SHELL --------
       - name: ShellCheck
         if: contains(needs.setup.outputs.languages, 'shell')
-        uses: github/shellcheck-action@v2
+        uses: ludeeus/action-shellcheck@master
 
       # -------- YAML/JSON/TOML --------
       - name: YAML Lint
@@ -235,7 +236,7 @@ jobs:
 
       # -------- SECURITY/DEPENDENCY/SECRETS --------
       - name: Trivy file & dependency scan
-        uses: aquasecurity/trivy-action@v0.49.1
+        uses: aquasecurity/trivy-action@v0.21.3
         with:
           scan-type: fs
         continue-on-error: true
