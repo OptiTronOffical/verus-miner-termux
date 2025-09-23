@@ -1,6 +1,8 @@
 name: Ultimate Universal Analyzer
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
@@ -270,10 +272,23 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         continue-on-error: true
 
+      # --- Prepare CodeQL Supported Languages ---
+      - name: Prepare languages for CodeQL
+        id: codeql-langs
+        run: |
+          langs="${{ needs.setup.outputs.languages }}"
+          filtered=""
+          for lang in $langs; do
+            case $lang in
+              cpp|csharp|go|java|javascript|python|ruby) filtered="$filtered $lang";;
+            esac
+          done
+          echo "filtered_languages=$filtered" >> $GITHUB_OUTPUT
+
       - name: Run GitHub CodeQL scan
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ needs.setup.outputs.languages }}
+          languages: ${{ steps.codeql-langs.outputs.filtered_languages }}
         continue-on-error: true
       - uses: github/codeql-action/analyze@v3
         continue-on-error: true
@@ -328,7 +343,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create results branch
-        if: always()
+        if: always() && github.ref != 'refs/heads/main'
         run: |
           git fetch origin
           git checkout -B copilot-analyzer-results
@@ -337,12 +352,13 @@ jobs:
           git push --force --set-upstream origin copilot-analyzer-results || echo "Branch already exists"
 
       - name: Create Pull Request with Analyzer Results
-        if: always()
+        if: always() && github.ref != 'refs/heads/main'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Add Copilot Analyzer summary [bot]"
           branch: copilot-analyzer-results
+          base: main
           title: "[Copilot Analyzer] Automated analysis results and suggestions"
           body: |
             ## Automated Analyzer Results
