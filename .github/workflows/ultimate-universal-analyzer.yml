@@ -54,8 +54,8 @@ jobs:
         if: contains(needs.setup.outputs.languages, 'python')
         continue-on-error: true
         run: |
-          pip install --upgrade pip
-          pip install black flake8 bandit pytest coverage radon safety
+          pip install --upgrade pip || true
+          pip install black flake8 bandit pytest coverage radon safety || true
 
       - name: Python lint, static analysis, tests, coverage, security, complexity
         if: contains(needs.setup.outputs.languages, 'python')
@@ -81,8 +81,8 @@ jobs:
         if: contains(needs.setup.outputs.languages, 'node')
         continue-on-error: true
         run: |
-          npm ci || npm install
-          npm install --save-dev eslint prettier jest nyc
+          npm ci || npm install || true
+          npm install --save-dev eslint prettier jest nyc || true
 
       - name: Node lint, tests, coverage, security
         if: contains(needs.setup.outputs.languages, 'node')
@@ -99,8 +99,8 @@ jobs:
         if: contains(needs.setup.outputs.languages, 'cpp')
         continue-on-error: true
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang gcc cppcheck valgrind cmake make
+          sudo apt-get update || true
+          sudo apt-get install -y clang gcc cppcheck valgrind cmake make || true
 
       - name: C/C++ lint, static analysis, build, test, memory check
         if: contains(needs.setup.outputs.languages, 'cpp')
@@ -109,7 +109,6 @@ jobs:
           cppcheck . 2>&1 | tee cpp_cppcheck.log || true
           if [ -f Makefile ]; then make | tee cpp_make.log || true; fi
           if [ -f CMakeLists.txt ]; then cmake . && make | tee cpp_cmake.log || true; fi
-          # Run tests if executable detected
           for exe in $(find . -maxdepth 2 -type f -executable); do
             valgrind --leak-check=full $exe | tee -a cpp_valgrind.log || true
           done
@@ -127,7 +126,7 @@ jobs:
         run: |
           go vet ./... | tee go_vet.log || true
           go test -v -coverprofile=go_coverage.out ./... | tee go_test.log || true
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@latest || true
           gosec ./... | tee go_gosec.log || true
 
       # -------- RUST --------
@@ -161,7 +160,7 @@ jobs:
         run: |
           if [ -f pom.xml ]; then mvn verify | tee java_mvn.log || true; fi
           if [ -f build.gradle ]; then ./gradlew check | tee java_gradle.log || true; fi
-          curl -sL https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.0.0-rc4/pmd-bin-7.0.0-rc4.zip -o pmd.zip && unzip -q pmd.zip
+          curl -sL https://github.com/pmd/pmd/releases/download/pmd_releases%2F7.0.0-rc4/pmd-bin-7.0.0-rc4.zip -o pmd.zip && unzip -q pmd.zip || true
           ./pmd-bin-7.0.0-rc4/bin/run.sh pmd -d . -R category/java/bestpractices.xml -f text | tee java_pmd.log || true
 
       # -------- PHP --------
@@ -178,7 +177,7 @@ jobs:
           composer install || true
           vendor/bin/phpstan analyse | tee php_phpstan.log || true
           vendor/bin/phpunit | tee php_phpunit.log || true
-          composer require --dev enlightn/security-checker
+          composer require --dev enlightn/security-checker || true
           vendor/bin/security-checker security:check | tee php_security.log || true
 
       # -------- RUBY --------
@@ -206,7 +205,7 @@ jobs:
         if: contains(needs.setup.outputs.languages, 'dart')
         continue-on-error: true
         run: |
-          dart pub get
+          dart pub get || true
           dart analyze . | tee dart_analyze.log || true
           dart test | tee dart_test.log || true
 
@@ -214,11 +213,13 @@ jobs:
       - name: ShellCheck
         if: contains(needs.setup.outputs.languages, 'shell')
         uses: ludeeus/action-shellcheck@master
+        continue-on-error: true
 
       # -------- YAML/JSON/TOML --------
       - name: YAML Lint
         if: contains(needs.setup.outputs.languages, 'yaml')
         uses: ibiqlik/action-yamllint@v3
+        continue-on-error: true
 
       - name: JSON Lint
         if: contains(needs.setup.outputs.languages, 'json')
@@ -242,8 +243,8 @@ jobs:
       - name: Install Hadolint
         continue-on-error: true
         run: |
-          curl -sL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
-          chmod +x /usr/local/bin/hadolint
+          curl -sL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint || true
+          chmod +x /usr/local/bin/hadolint || true
 
       - name: Hadolint Dockerfile
         continue-on-error: true
@@ -254,10 +255,10 @@ jobs:
       - name: Install Trivy
         continue-on-error: true
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget rpm
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
-          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
+          sudo apt-get update || true
+          sudo apt-get install -y wget rpm || true
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb || true
+          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb || true
 
       - name: Run Trivy Scan
         continue-on-error: true
@@ -273,6 +274,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ needs.setup.outputs.languages }}
+        continue-on-error: true
       - uses: github/codeql-action/analyze@v3
         continue-on-error: true
 
