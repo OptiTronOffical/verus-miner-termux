@@ -320,8 +320,34 @@ jobs:
             go_coverage.out
             dummy.log
 
-      - name: Post Analyzer Summary to PR
-        if: github.event_name == 'pull_request'
-        uses: thollander/actions-comment-pull-request@v2
+      # --- AUTOMATIC PULL REQUEST WITH RESULTS ---
+      - name: Set up Git user
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create results branch
+        if: always()
+        run: |
+          git fetch origin
+          git checkout -B copilot-analyzer-results
+          git add copilot_summary.md || true
+          git commit -m "Add Copilot Analyzer summary [bot]" || echo "Nothing to commit"
+          git push --force --set-upstream origin copilot-analyzer-results || echo "Branch already exists"
+
+      - name: Create Pull Request with Analyzer Results
+        if: always()
+        uses: peter-evans/create-pull-request@v6
         with:
-          filePath: copilot_summary.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Add Copilot Analyzer summary [bot]"
+          branch: copilot-analyzer-results
+          title: "[Copilot Analyzer] Automated analysis results and suggestions"
+          body: |
+            ## Automated Analyzer Results
+
+            This PR contains the aggregated results of all code quality, security, and dependency checks run automatically on this repository.
+
+            - Review the `copilot_summary.md` file for details, errors, warnings, and remediation steps.
+            - Copilot and maintainers can use this to triage and fix issues.
