@@ -251,11 +251,19 @@ jobs:
           if [ -f Dockerfile ]; then hadolint Dockerfile | tee docker_hadolint.log || true; else echo "No Dockerfile found."; fi
 
       # -------- SECURITY/DEPENDENCY/SECRETS --------
-      - name: Trivy file & dependency scan
-        uses: aquasecurity/trivy-action@main
-        with:
-          scan-type: fs
+      - name: Install Trivy
         continue-on-error: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget rpm
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
+
+      - name: Run Trivy Scan
+        continue-on-error: true
+        run: |
+          trivy fs --exit-code 1 --severity HIGH,CRITICAL . | tee trivy_fs.log || true
+          trivy config --exit-code 1 --severity HIGH,CRITICAL . | tee trivy_config.log || true
 
       - name: Gitleaks secret scan
         uses: gitleaks/gitleaks-action@v2
@@ -291,7 +299,6 @@ jobs:
           echo "" >> copilot_summary.md
           echo "### For detailed logs and HTML reports, download the workflow artifacts." >> copilot_summary.md
 
-      # -------- UPLOAD ARTIFACTS --------
       - name: Upload all logs and coverage as artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -302,7 +309,6 @@ jobs:
             */*.log
             go_coverage.out
 
-      # -------- COMMENT ON PR --------
       - name: Post Analyzer Summary to PR
         if: github.event_name == 'pull_request'
         uses: thollander/actions-comment-pull-request@v2
