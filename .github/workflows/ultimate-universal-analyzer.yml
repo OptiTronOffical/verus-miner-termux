@@ -224,11 +224,14 @@ jobs:
           done
 
       # -------- DOCKER --------
-      - name: Hadolint Dockerfile
-        if: |
-          hash hadolint 2>/dev/null || (curl -sL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint && chmod +x /usr/local/bin/hadolint)
+      - name: Install Hadolint
         run: |
-          if [ -f Dockerfile ]; then hadolint Dockerfile | tee docker_hadolint.log || true; fi
+          curl -sL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+          chmod +x /usr/local/bin/hadolint
+
+      - name: Hadolint Dockerfile
+        run: |
+          if [ -f Dockerfile ]; then hadolint Dockerfile | tee docker_hadolint.log || true; else echo "No Dockerfile found."; fi
 
       # -------- SECURITY/DEPENDENCY/SECRETS --------
       - name: Trivy file & dependency scan
