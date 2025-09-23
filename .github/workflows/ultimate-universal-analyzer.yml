@@ -200,7 +200,7 @@ jobs:
       # -------- SHELL --------
       - name: ShellCheck
         if: contains(needs.setup.outputs.languages, 'shell')
-        uses: ludeeus/action-shellcheck@v2
+        uses: github/shellcheck-action@v2
 
       # -------- YAML/JSON/TOML --------
       - name: YAML Lint
@@ -235,7 +235,7 @@ jobs:
 
       # -------- SECURITY/DEPENDENCY/SECRETS --------
       - name: Trivy file & dependency scan
-        uses: aquasecurity/trivy-action@v0.18.0
+        uses: aquasecurity/trivy-action@v0.49.1
         with:
           scan-type: fs
         continue-on-error: true
