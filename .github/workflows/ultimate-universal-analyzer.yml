@@ -299,6 +299,14 @@ jobs:
           echo "" >> copilot_summary.md
           echo "### For detailed logs and HTML reports, download the workflow artifacts." >> copilot_summary.md
 
+      - name: Ensure at least one artifact exists
+        if: always()
+        run: |
+          files=$(find . -maxdepth 2 -name "*.log" -o -name "go_coverage.out")
+          if [ -z "$files" ]; then
+            echo "No analyzer logs found, creating dummy artifact." > dummy.log
+          fi
+
       - name: Upload all logs and coverage as artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -308,6 +316,7 @@ jobs:
             *.log
             */*.log
             go_coverage.out
+            dummy.log
 
       - name: Post Analyzer Summary to PR
         if: github.event_name == 'pull_request'
