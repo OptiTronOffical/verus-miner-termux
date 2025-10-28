@@ -1,0 +1,16 @@
+{
+  "pool": {
+    "url": "stratum+tcp://na.luckpool.net:3956",
+    "user": "RJRTJRN8JEHeenGq8FGTfvG5RraFDZdLDz",
+    "worker": "Termux-Miner"
+  },
+  "backup_pools": [
+    {
+      "url": "stratum+tcp://us.luckpool.net:3956"
+      "url": "stratum+tcp://eu.luckpool.net:3956"
+      "url": "stratum+tcp://veruspool.com:13721"
+      "url": "stratum+tcp://vrsc.suprnova.cc:17777"
+      "url":  "stratum+tcp://veruscoin.pro:3032"
+    }
+  ]
+}
